@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
@@ -16,10 +17,17 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      validate(email) {
+        if (!validator.isEmail(email)) throw new Error("Invalid email id");
+      },
     },
     password: {
       type: String,
       required: true,
+      validate(password) {
+        if (!validator.isStrongPassword(password))
+          throw new Error("Entered password is not strong. Try again!");
+      },
     },
     age: {
       type: Number,
@@ -31,12 +39,16 @@ const userSchema = new mongoose.Schema(
       validate(value) {
         if (!["male", "female", "transgender"].includes(value))
           throw new Error("Mention the correct gender");
-      }, // runs only when creating new user, for already created users if I try to update the gender it will allow be to enter any value except these 3
+      }, // runs only when creating new user, for already created users. If I try to update the gender it will allow be to enter any value except these 3
     },
     photoUrl: {
       type: String,
       default:
         "https://tse1.mm.bing.net/th/id/OIP.qsAOIYb4DjmoPKkP_uuttgHaF7?pid=Api&P=0&h=180",
+      validate(url) {
+        if (!validator.isURL(url))
+          throw new Error("Upload picture in correct format");
+      },
     },
     about: {
       type: String,
@@ -44,6 +56,10 @@ const userSchema = new mongoose.Schema(
     },
     skills: {
       type: [String],
+      validate(items) {
+        if (items.length > 5)
+          throw new Error("Cannot add more than five skills");
+      },
     },
   },
   {

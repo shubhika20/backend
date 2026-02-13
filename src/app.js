@@ -57,10 +57,16 @@ app.delete("/delete", async (req, res) => {
 });
 
 //update a user
-app.patch("/updateUser", async (req, res) => {
+app.patch("/updateUser/:userId", async (req, res) => {
   try {
-    const userId = req.body.id;
+    const userId = req.params?.userId;
     const updatedData = req.body;
+    const allowed_fields = ["id", "password", "photoUrl", "skills", "about"];
+    const isUpdatedAllowed = Object.keys(updatedData).every((key) =>
+      allowed_fields.includes(key),
+    );
+    if (!isUpdatedAllowed)
+      throw new Error("Update of non changeable field attempted"); // this also prevents that no new key is added to the db other than those mentioned in schema, like I cannot add salary
     const user = await User.findByIdAndUpdate({ _id: userId }, updatedData, {
       runValidators: true, //this runs the validations on all field if associated with them
     });
