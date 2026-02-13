@@ -14,7 +14,7 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("Sign up successfull");
   } catch (err) {
-    res.status(400).send("User was not able to sign up");
+    res.status(400).send("User was not able to sign up" + err.message);
   }
 });
 
@@ -27,7 +27,7 @@ app.get("/userByEmail", async (req, res) => {
     if (user) res.send("User found");
     else res.status(404).send("No user found with the given email id");
   } catch (err) {
-    res.status(400).send("Error occured");
+    res.status(400).send("Error occured" + err.message);
   }
 });
 
@@ -37,7 +37,7 @@ app.get("/feed", async (req, res) => {
     const users = await User.find({});
     res.send(users);
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    res.status(400).send("Something went wrong" + err.message);
   }
 });
 
@@ -50,7 +50,9 @@ app.delete("/delete", async (req, res) => {
     if (user) res.send("User deleted successfully");
     else res.send("No user found with the given id");
   } catch (err) {
-    res.status(400).send("Something went wrong while performing deletetion");
+    res
+      .status(400)
+      .send("Something went wrong while performing deletetion" + err.message);
   }
 });
 
@@ -59,11 +61,15 @@ app.patch("/updateUser", async (req, res) => {
   try {
     const userId = req.body.id;
     const updatedData = req.body;
-    const user = await User.findByIdAndUpdate({ _id: userId }, updatedData);
+    const user = await User.findByIdAndUpdate({ _id: userId }, updatedData, {
+      runValidators: true, //this runs the validations on all field if associated with them
+    });
     if (user) res.send("User details updated successfully");
     else res.status(400).send("No user found with given user id");
   } catch (err) {
-    res.status(400).send("Something went wrong while updating user details");
+    res
+      .status(400)
+      .send("Something went wrong while updating user details " + err.message);
   }
 });
 
