@@ -7,6 +7,7 @@ const User = require("./models/user");
 const app = express();
 
 app.use(express.json()); //used to parse the data we send from body in postman
+
 app.post("/signup", async (req, res) => {
   const user = new User(req.body);
   try {
@@ -14,6 +15,55 @@ app.post("/signup", async (req, res) => {
     res.send("Sign up successfull");
   } catch (err) {
     res.status(400).send("User was not able to sign up");
+  }
+});
+
+//find user by email
+app.get("/userByEmail", async (req, res) => {
+  const userEmail = req.body.emailId;
+
+  try {
+    const user = await User.findOne({ emailId: userEmail });
+    if (user) res.send("User found");
+    else res.status(404).send("No user found with the given email id");
+  } catch (err) {
+    res.status(400).send("Error occured");
+  }
+});
+
+//get all users
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    res.status(400).send("Something went wrong");
+  }
+});
+
+//delete a user
+app.delete("/delete", async (req, res) => {
+  const userId = req.body.id;
+  try {
+    //const user = await User.findByIdAndDelete({ _id: userId });
+    const user = await User.findByIdAndDelete(userId);
+    if (user) res.send("User deleted successfully");
+    else res.send("No user found with the given id");
+  } catch (err) {
+    res.status(400).send("Something went wrong while performing deletetion");
+  }
+});
+
+//update a user
+app.patch("/updateUser", async (req, res) => {
+  try {
+    const userId = req.body.id;
+    const updatedData = req.body;
+    const user = await User.findByIdAndUpdate({ _id: userId }, updatedData);
+    if (user) res.send("User details updated successfully");
+    else res.status(400).send("No user found with given user id");
+  } catch (err) {
+    res.status(400).send("Something went wrong while updating user details");
   }
 });
 
