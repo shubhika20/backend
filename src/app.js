@@ -6,15 +6,9 @@ const User = require("./models/user");
 
 const app = express();
 
+app.use(express.json()); //used to parse the data we send from body in postman
 app.post("/signup", async (req, res) => {
-  const user = new User({
-    firstName: "Shubhika",
-    lastName: "Agrawal",
-    emailId: "shubhika.agrawal98@gmail.com",
-    password: "testpassword",
-    gender: "Female",
-    age: 27,
-  });
+  const user = new User(req.body);
   try {
     await user.save();
     res.send("Sign up successfull");
