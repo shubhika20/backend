@@ -3,18 +3,43 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const validateSignUpData = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const app = express();
 
 app.use(express.json()); //used to parse the data we send from body in postman
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
   try {
+    validateSignUpData(req);
+    const { firstName, lastName, emailId, password } = req.body;
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await user.save();
     res.send("Sign up successfull");
   } catch (err) {
-    res.status(400).send("User was not able to sign up" + err.message);
+    res.status(400).send("ERROR " + err.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    if (!validator.isEmail(emailId)) throw new Error("Invalid credentials");
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) throw new Error("No user found");
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) res.send("Login successful");
+    else throw new Error("Invalid credentials");
+  } catch (error) {
+    res.status(400).send("ERROR " + error.message);
   }
 });
 

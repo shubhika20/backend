@@ -6,10 +6,11 @@ const userSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: true,
-      maxLength: 25,
+      maxLength: 20,
     },
     lastName: {
       type: String,
+      maxLength: 20,
     },
     emailId: {
       type: String,
@@ -17,17 +18,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      validate(email) {
-        if (!validator.isEmail(email)) throw new Error("Invalid email id");
-      },
     },
     password: {
       type: String,
       required: true,
-      validate(password) {
-        if (!validator.isStrongPassword(password))
-          throw new Error("Entered password is not strong. Try again!");
-      },
     },
     age: {
       type: Number,

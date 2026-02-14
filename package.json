@@ -18,6 +18,7 @@
     "url": "https://github.com/shubhika20/backend/issues"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.1",
