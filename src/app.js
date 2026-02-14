@@ -6,20 +6,22 @@ const User = require("./models/user");
 const validateSignUpData = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const userAuth = require("./middleware/auth");
 
 const app = express();
 
 app.use(express.json()); //used to parse the data we send from body in postman
+app.use(cookieParser()); // to read the cookie coming from the request
 
 app.post("/signup", async (req, res) => {
   try {
     validateSignUpData(req);
-    const { firstName, lastName, emailId, password } = req.body;
+    const { password } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
     const user = new User({
-      firstName,
-      lastName,
-      emailId,
+      ...req.body,
       password: passwordHash,
     });
     await user.save();
@@ -36,8 +38,32 @@ app.post("/login", async (req, res) => {
     const user = await User.findOne({ emailId: emailId });
     if (!user) throw new Error("No user found");
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (isPasswordValid) res.send("Login successful");
-    else throw new Error("Invalid credentials");
+    if (isPasswordValid) {
+      const token = await jwt.sign({ _id: user._id }, "createjwt", {
+        expiresIn: "1h",
+      });
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 8 * 3600000),
+      });
+      res.send("Login successful");
+    } else throw new Error("Invalid credentials");
+  } catch (error) {
+    res.status(400).send("ERROR " + error.message);
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch (error) {
+    res.status(400).send("ERROR " + error.message);
+  }
+});
+
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
   } catch (error) {
     res.status(400).send("ERROR " + error.message);
   }
