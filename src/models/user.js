@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
@@ -60,6 +62,23 @@ const userSchema = new mongoose.Schema(
     timestamps: true, //this adds created at and updated at keys by default with each new created user
   },
 );
+
+userSchema.methods.validatePassword = async function (passwordByUser) {
+  const user = this;
+  const passwordHash = user.password;
+  const isPasswordValid = await bcrypt.compare(passwordByUser, passwordHash);
+  return isPasswordValid;
+};
+
+userSchema.methods.getJWT = async function () {
+  const user = this; // this represents an instance of the schema (meaning an entry in database)
+  const token = await jwt.sign({ _id: user._id }, "createjwt", {
+    expiresIn: "1h",
+  });
+  return token;
+};
+
+//these methods were created to make code cleaner in app.js as these methods are related to user and its better to attach them with schema
 
 const userModel = mongoose.model("User", userSchema);
 module.exports = userModel;

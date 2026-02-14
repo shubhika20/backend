@@ -4,10 +4,9 @@ const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
 const validateSignUpData = require("./utils/validation");
-const bcrypt = require("bcrypt");
+
 const validator = require("validator");
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
 const userAuth = require("./middleware/auth");
 
 const app = express();
@@ -37,11 +36,9 @@ app.post("/login", async (req, res) => {
     if (!validator.isEmail(emailId)) throw new Error("Invalid credentials");
     const user = await User.findOne({ emailId: emailId });
     if (!user) throw new Error("No user found");
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.validatePassword(password);
     if (isPasswordValid) {
-      const token = await jwt.sign({ _id: user._id }, "createjwt", {
-        expiresIn: "1h",
-      });
+      const token = await user.getJWT();
       res.cookie("token", token, {
         expires: new Date(Date.now() + 8 * 3600000),
       });
