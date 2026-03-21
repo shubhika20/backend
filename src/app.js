@@ -3,68 +3,21 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
-const validateSignUpData = require("./utils/validation");
 
-const validator = require("validator");
 const cookieParser = require("cookie-parser");
-const userAuth = require("./middleware/auth");
 
 const app = express();
 
 app.use(express.json()); //used to parse the data we send from body in postman
 app.use(cookieParser()); // to read the cookie coming from the request
 
-app.post("/signup", async (req, res) => {
-  try {
-    validateSignUpData(req);
-    const { password } = req.body;
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = new User({
-      ...req.body,
-      password: passwordHash,
-    });
-    await user.save();
-    res.send("Sign up successfull");
-  } catch (err) {
-    res.status(400).send("ERROR " + err.message);
-  }
-});
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
+const requestRouter = require("./routes/requests");
 
-app.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-    if (!validator.isEmail(emailId)) throw new Error("Invalid credentials");
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) throw new Error("No user found");
-    const isPasswordValid = await user.validatePassword(password);
-    if (isPasswordValid) {
-      const token = await user.getJWT();
-      res.cookie("token", token, {
-        expires: new Date(Date.now() + 8 * 3600000),
-      });
-      res.send("Login successful");
-    } else throw new Error("Invalid credentials");
-  } catch (error) {
-    res.status(400).send("ERROR " + error.message);
-  }
-});
-
-app.get("/profile", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.send(user);
-  } catch (error) {
-    res.status(400).send("ERROR " + error.message);
-  }
-});
-
-app.post("/sendConnectionRequest", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-  } catch (error) {
-    res.status(400).send("ERROR " + error.message);
-  }
-});
+app.use("/", authRouter);
+app.use("/", profileRouter);
+app.use("/", requestRouter);
 
 //find user by email
 app.get("/userByEmail", async (req, res) => {
