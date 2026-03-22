@@ -63,6 +63,8 @@ const userSchema = new mongoose.Schema(
   },
 );
 
+userSchema.index({ firstName: 1, lastName: 1 }); // this is to optimize the search performance when we are searching users by their first name and last name
+
 userSchema.methods.validatePassword = async function (passwordByUser) {
   const user = this;
   const passwordHash = user.password;
