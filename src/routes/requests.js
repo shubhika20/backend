@@ -69,4 +69,38 @@ requestRouter.post(
   },
 );
 
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const allowedStatus = ["accepted", "rejected"];
+      if (!allowedStatus.includes(req.params.status)) {
+        return res.status(400).json({
+          message: "Invalid status type: " + req.params.status,
+        });
+      }
+      const connectionRequest = await ConnectionRequestModel.findOne({
+        _id: req.params.requestId,
+        toUserId: loggedInUser._id,
+        status: "interested", // only interested requests can be accepted or rejected, ignored requests cannot be accepted or rejected
+      });
+      if (!connectionRequest) {
+        return res.status(404).json({
+          message: "No such connection request exists",
+        });
+      }
+      connectionRequest.status = req.params.status;
+      const data = await connectionRequest.save();
+      res.json({
+        message: "Connection request has been " + req.params.status,
+        data,
+      });
+    } catch (error) {
+      res.status(400).send("ERROR " + error.message);
+    }
+  },
+);
+
 module.exports = requestRouter;

@@ -3,10 +3,12 @@ const connectionRequestSchema = new moongoose.Schema(
   {
     fromUserId: {
       type: moongoose.Schema.Types.ObjectId,
+      ref: "User", // creates a reference to the User model, this is to establish a relationship between the ConnectionRequest and User models. This allows us to populate the fromUserId field with the user details when we fetch the connection requests for a user
       required: true,
     },
     toUserId: {
       type: moongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     status: {
